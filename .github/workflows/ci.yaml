@@ -10,6 +10,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      pages_ready: ${{ steps.configure_pages.outcome == 'success' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -22,6 +24,8 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: Configure Pages
+        id: configure_pages
+        continue-on-error: true
         uses: actions/configure-pages@v6
       - name: Upload tested site
         uses: actions/upload-pages-artifact@v5
@@ -29,6 +33,7 @@ jobs:
           path: dist/
   deploy:
     needs: build
+    if: needs.build.outputs.pages_ready == 'true'
     runs-on: ubuntu-latest
     permissions:
       pages: write
